@@ -25,6 +25,13 @@
           <span v-if="isPlaying">🔊</span>
           <span v-else>🔈</span>
         </button>
+
+        <div v-if="needGesture" class="audio-gesture" @click="handleGesture">
+          <div class="gesture-inner">
+            <div class="gesture-text">Chạm để bật âm thanh</div>
+            <div class="gesture-sub">Tap to enable sound</div>
+          </div>
+        </div>
       </div>
     </ClientOnly>
   </div>
@@ -35,6 +42,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const bgAudio = ref(null)
 const isPlaying = ref(false)
+const needGesture = ref(false)
 
 const playAudio = async () => {
   if (!bgAudio.value) return
@@ -44,16 +52,18 @@ const playAudio = async () => {
     bgAudio.value.autoplay = true
     await bgAudio.value.play()
     isPlaying.value = !bgAudio.value.paused
-  } catch (e) {
-    // Audible autoplay blocked — try to play muted as a fallback so audio element is active
-    try {
-      bgAudio.value.muted = true
-      await bgAudio.value.play()
-      // mark playing but currently muted
-      isPlaying.value = true
-    } catch (err) {
-      isPlaying.value = false
-    }
+    } catch (e) {
+      // Audible autoplay blocked — try to play muted as a fallback so audio element is active
+      try {
+        bgAudio.value.muted = true
+        await bgAudio.value.play()
+        // mark playing but currently muted
+        isPlaying.value = true
+      } catch (err) {
+        // both audible and muted autoplay blocked -> require user gesture
+        isPlaying.value = false
+        needGesture.value = true
+      }
   }
 }
 
@@ -75,6 +85,21 @@ const onFirstGesture = () => {
     bgAudio.value.play().catch(()=>{})
     isPlaying.value = !bgAudio.value.paused
   }
+  needGesture.value = false
+}
+
+const handleGesture = async () => {
+  // Called when the full-screen gesture overlay is tapped
+  if (!bgAudio.value) return
+  try {
+    bgAudio.value.muted = false
+    await bgAudio.value.play()
+    isPlaying.value = true
+  } catch (e) {
+    // if still fails, keep muted but mark as playing so element is active
+    try { await bgAudio.value.play(); isPlaying.value = true } catch {}
+  }
+  needGesture.value = false
 }
 
 onMounted(() => {
