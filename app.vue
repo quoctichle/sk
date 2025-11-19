@@ -20,7 +20,7 @@
     </ClientOnly>
     <ClientOnly>
       <div id="bg-music" aria-hidden="false">
-        <audio ref="bgAudio" src="/music.mp3" loop preload="auto"></audio>
+        <audio ref="bgAudio" src="/music.mp3" loop preload="auto" autoplay playsinline></audio>
         <button class="music-toggle" @click="toggleMusic" aria-label="Toggle background music">
           <span v-if="isPlaying">🔊</span>
           <span v-else>🔈</span>
@@ -39,13 +39,17 @@ const isPlaying = ref(false)
 const playAudio = async () => {
   if (!bgAudio.value) return
   try {
+    // Try to play unmuted first (best effort); browsers may still block this.
+    bgAudio.value.muted = false
+    bgAudio.value.autoplay = true
     await bgAudio.value.play()
     isPlaying.value = !bgAudio.value.paused
   } catch (e) {
-    // Autoplay blocked — keep it muted and try to start muted
+    // Audible autoplay blocked — try to play muted as a fallback so audio element is active
     try {
       bgAudio.value.muted = true
       await bgAudio.value.play()
+      // mark playing but currently muted
       isPlaying.value = true
     } catch (err) {
       isPlaying.value = false
@@ -74,8 +78,13 @@ const onFirstGesture = () => {
 }
 
 onMounted(() => {
-  // try to start playback on mount (will often be muted by browser)
-  playAudio()
+  // Try to start playback on mount. If the browser blocks audible autoplay,
+  // the fallback will play muted and we still listen for the first user gesture
+  // to unmute.
+  if (bgAudio.value) {
+    // attempt to play audible immediately (best-effort)
+    playAudio()
+  }
   document.addEventListener('click', onFirstGesture, { once: true })
 })
 
