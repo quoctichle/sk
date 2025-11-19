@@ -3,20 +3,7 @@
     <NuxtRouteAnnouncer />
     <NuxtPage />
     <ClientOnly>
-      <div class="falling-coins" aria-hidden="true">
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-        <div class="coin"></div>
-      </div>
+      <Snowfall />
     </ClientOnly>
     <ClientOnly>
       <div id="bg-music" aria-hidden="false">
@@ -39,6 +26,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import Snowfall from '~/components/Snowfall.vue'
 
 const bgAudio = ref(null)
 const isPlaying = ref(false)
