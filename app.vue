@@ -18,8 +18,71 @@
         <div class="coin"></div>
       </div>
     </ClientOnly>
+    <ClientOnly>
+      <div id="bg-music" aria-hidden="false">
+        <audio ref="bgAudio" src="/music.mmp3" loop preload="auto"></audio>
+        <button class="music-toggle" @click="toggleMusic" aria-label="Toggle background music">
+          <span v-if="isPlaying">🔊</span>
+          <span v-else>🔈</span>
+        </button>
+      </div>
+    </ClientOnly>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const bgAudio = ref(null)
+const isPlaying = ref(false)
+
+const playAudio = async () => {
+  if (!bgAudio.value) return
+  try {
+    await bgAudio.value.play()
+    isPlaying.value = !bgAudio.value.paused
+  } catch (e) {
+    // Autoplay blocked — keep it muted and try to start muted
+    try {
+      bgAudio.value.muted = true
+      await bgAudio.value.play()
+      isPlaying.value = true
+    } catch (err) {
+      isPlaying.value = false
+    }
+  }
+}
+
+const toggleMusic = async () => {
+  if (!bgAudio.value) return
+  if (isPlaying.value) {
+    bgAudio.value.pause()
+    isPlaying.value = false
+  } else {
+    bgAudio.value.muted = false
+    await playAudio()
+  }
+}
+
+const onFirstGesture = () => {
+  if (!bgAudio.value) return
+  if (bgAudio.value.muted) {
+    bgAudio.value.muted = false
+    bgAudio.value.play().catch(()=>{})
+    isPlaying.value = !bgAudio.value.paused
+  }
+}
+
+onMounted(() => {
+  // try to start playback on mount (will often be muted by browser)
+  playAudio()
+  document.addEventListener('click', onFirstGesture, { once: true })
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onFirstGesture)
+})
+</script>
 
 <style>
 @font-face {
@@ -130,5 +193,15 @@ h1, h2, h3, h4, h5, h6, button, a {
 @media (max-width: 600px) {
   .falling-coins .coin { display:block; }
   .falling-coins .coin { width: calc(40px * 0.9); }
+}
+
+/* Background music control */
+#bg-music { position: fixed; right: 16px; bottom: 16px; z-index: 2000; }
+.music-toggle { background: rgba(255,255,255,0.9); border: none; padding:8px 10px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.18); cursor:pointer; font-size:18px; }
+.music-toggle:focus { outline:2px solid rgba(0,0,0,0.12) }
+
+@media (max-width: 600px) {
+  #bg-music { right: 10px; bottom: 10px }
+  .music-toggle { padding:6px 8px; font-size:16px }
 }
 </style>
