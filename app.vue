@@ -111,6 +111,20 @@ onMounted(() => {
     playAudio()
   }
   document.addEventListener('click', onFirstGesture, { once: true })
+  // expose a global helper so pages can start/unmute audio on user actions
+  // pages should call `window.startBgAudio()` when the user interacts (e.g., Continue button)
+  window.startBgAudio = async () => {
+    try {
+      if (!bgAudio.value) return
+      bgAudio.value.muted = false
+      await bgAudio.value.play()
+      isPlaying.value = true
+      needGesture.value = false
+    } catch (e) {
+      // fallback: try to play muted so audio element is active
+      try { await bgAudio.value.play(); isPlaying.value = true; } catch {}
+    }
+  }
 })
 
 onBeforeUnmount(() => {
@@ -121,7 +135,7 @@ onBeforeUnmount(() => {
 <style>
 @font-face {
   font-family: 'FS Magistral';
-  src: url('/fonts/FS MAGISTRAL-BOLD.ttf') format('truetype');
+  src: url('/fonts/FS_MAGISTRAL-BOLD.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
 }

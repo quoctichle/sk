@@ -49,7 +49,9 @@ const prizeCode = ref('')
 
 const router = useRouter()
 
-const submitForm = () => {
+const submitForm = async () => {
+	// Start background audio on this user gesture (if browser blocked autoplay)
+	try { if (window?.startBgAudio) await window.startBgAudio() } catch(e){}
 	// Navigate to result page where the promo image is shown
 	router.push('/en/result')
 }
