@@ -111,6 +111,8 @@ onMounted(() => {
     playAudio()
   }
   document.addEventListener('click', onFirstGesture, { once: true })
+  document.addEventListener('pointerdown', onFirstGesture, { once: true, passive: true })
+  document.addEventListener('touchstart', onFirstGesture, { once: true, passive: true })
   // expose a global helper so pages can start/unmute audio on user actions
   // pages should call `window.startBgAudio()` when the user interacts (e.g., Continue button)
   window.startBgAudio = async () => {
@@ -129,6 +131,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onFirstGesture)
+  document.removeEventListener('pointerdown', onFirstGesture)
+  document.removeEventListener('touchstart', onFirstGesture)
 })
 </script>
 
