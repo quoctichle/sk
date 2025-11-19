@@ -20,7 +20,7 @@
     </ClientOnly>
     <ClientOnly>
       <div id="bg-music" aria-hidden="false">
-        <audio ref="bgAudio" src="/music.mmp3" loop preload="auto"></audio>
+        <audio ref="bgAudio" src="/music.mp3" loop preload="auto"></audio>
         <button class="music-toggle" @click="toggleMusic" aria-label="Toggle background music">
           <span v-if="isPlaying">🔊</span>
           <span v-else>🔈</span>
